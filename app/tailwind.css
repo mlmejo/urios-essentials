@@ -10,3 +10,13 @@ body {
     color-scheme: dark;
   }
 }
+
+@layer components {
+  .btn-primary {
+    @apply bg-cornflower-blue-500 hover:bg-cornflower-blue-600 inline-flex items-center rounded-md px-4 py-2 text-sm font-semibold text-white transition duration-150 ease-in-out;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-800 transition duration-150 ease-in-out hover:bg-gray-100;
+  }
+}

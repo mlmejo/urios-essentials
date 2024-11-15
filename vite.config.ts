@@ -1,4 +1,5 @@
 import { vitePlugin as remix } from "@remix-run/dev";
+import { glob } from "glob";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
@@ -21,4 +22,11 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
+  ssr: {
+    noExternal: [
+      "@adobe/react-spectrum",
+      "@react-spectrum/*",
+      "@spectrum-icons/*",
+    ].flatMap((spec) => glob.sync(`${spec}`, { cwd: "node_modules/" })),
+  },
 });

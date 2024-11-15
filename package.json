@@ -11,15 +11,27 @@
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@adobe/react-spectrum": "^3.37.1",
+    "@react-spectrum/toast": "^3.0.0-beta.16",
     "@remix-run/node": "^2.14.0",
     "@remix-run/react": "^2.14.0",
     "@remix-run/serve": "^2.14.0",
+    "@types/node": "^22.9.0",
+    "chart.js": "^4.4.6",
+    "glob": "^11.0.0",
     "isbot": "^4.1.0",
+    "lucide-react": "^0.456.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-aria-carousel": "^0.2.0",
+    "react-aria-components": "^1.4.1",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^18.2.0",
+    "remix-utils": "^7.7.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@remix-run/dev": "^2.14.0",
+    "@tailwindcss/forms": "^0.5.9",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.7.4",
@@ -32,6 +44,9 @@
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "postcss": "^8.4.38",
+    "prettier": "^3.3.3",
+    "prettier-plugin-tailwindcss": "^0.6.8",
+    "tailwind-merge": "^2.5.4",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.1.6",
     "vite": "^5.1.0",
