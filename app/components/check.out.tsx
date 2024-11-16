@@ -17,7 +17,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   let products = (await response.json()).data as Product[];
   let enrinchedCart = userCart.map((cartItem) => {
-    let product = products.find((product) => product.id === cartItem.productId);
+    let product = products.find(
+      (product) => String(product.id!) === cartItem.productId,
+    );
 
     if (product) {
       return {

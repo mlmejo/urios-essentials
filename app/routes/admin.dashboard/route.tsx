@@ -33,7 +33,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function AdminDashboard() {
   let { orderItems } = useLoaderData<typeof loader>();
-  let totalSales = orderItems.reduce((total, orderItem) => {
+  let totalSales = orderItems?.reduce((total, orderItem) => {
     let itemSubtotal = orderItem.quantity * orderItem.product.price;
     return total + itemSubtotal;
   }, 0);
@@ -49,7 +49,7 @@ export default function AdminDashboard() {
                   Total Sales
                 </h2>
                 <p className="text-sm font-medium text-gray-800">
-                  PHP ${totalSales}
+                  PHP {totalSales || 0}
                 </p>
               </div>
             </div>

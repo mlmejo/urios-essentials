@@ -1,6 +1,6 @@
 import { ActionFunctionArgs, MetaFunction } from "@remix-run/node";
 import { Form, redirect, useActionData } from "@remix-run/react";
-import { setAuthOnResponse } from "~/auth/auth";
+import { redirectIfLoggedInLoader, setAuthOnResponse } from "~/auth/auth";
 import { login } from "~/auth/queries";
 import InputError from "~/components/input-error";
 import InputLabel from "~/components/input-label";
@@ -16,18 +16,24 @@ export async function action({ request }: ActionFunctionArgs) {
   let data = Object.fromEntries(formData);
 
   try {
-    let userData = await login(String(data.identifier), String(data.password));
-    let response = redirect("/shop");
-    return await setAuthOnResponse(response, userData);
+    let authData = await login(String(data.identifier), String(data.password));
+    let response = redirect(
+      authData?.user.role!.name == "Admin" ? "/admin" : "/",
+    );
+    return await setAuthOnResponse(response, authData);
   } catch (error) {
-    if (error instanceof Error) {
-      console.error("Unexpected error in Login action: ", error.message);
-      return { authError: error.message };
-    }
-  }
+    let errorMessage = "An unexpected error occurred. Please try again.";
 
-  return null;
+    if (error instanceof Error) {
+      console.error("Login error:", error.message);
+      errorMessage = error.message; // Use the error message returned from the login function
+    }
+
+    return { authError: errorMessage };
+  }
 }
+
+export const loader = redirectIfLoggedInLoader;
 
 export default function Login() {
   let actionData = useActionData<{ authError?: string } | null>();

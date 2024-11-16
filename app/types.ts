@@ -42,20 +42,10 @@ export interface StrapiError {
   };
 }
 
-export interface StrapiUser {
-  jwt: string;
-  user: UserData;
-}
-
-export interface UserData {
-  documentId: string;
-  email: string;
-}
-
 export interface OrderItem {
   documentId: string;
   product: Product;
   quantity: number;
   createdAt: string;
-  status: string;
+  orderStatus: string;
 }

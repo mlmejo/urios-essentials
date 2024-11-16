@@ -1,8 +1,18 @@
-import { Form, Link } from "@remix-run/react";
-import { ShoppingCart } from "lucide-react";
+import { Link, useFetcher, useNavigate } from "@remix-run/react";
+import { ChevronDown, ShoppingCart } from "lucide-react";
+import {
+  Button,
+  Menu,
+  MenuItem,
+  MenuTrigger,
+  Popover,
+} from "react-aria-components";
 import NavLink from "~/components/nav-link";
 
 export default function Navigation({ user }: { user?: string }) {
+  let fetcher = useFetcher();
+  let navigate = useNavigate();
+
   return (
     <nav className="border-b border-gray-100 bg-cornflower-blue-400">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
@@ -37,14 +47,32 @@ export default function Navigation({ user }: { user?: string }) {
                   My Cart
                 </Link>
                 <span className="h-4 border-l-2" aria-hidden></span>
-                <p className="text-sm font-medium text-white">{user}</p>
-                <div>
-                  <Form method="post" action="/logout">
-                    <button className="text-sm font-medium underline underline-offset-4">
-                      Logout
-                    </button>
-                  </Form>
-                </div>
+                <MenuTrigger>
+                  <Button className="inline-flex items-end gap-x-1 text-sm font-medium text-white">
+                    {user} <ChevronDown className="size-4 shrink-0" />
+                  </Button>
+                  <Popover className="entering:animate-in entering:fade-in entering:zoom-in-95 exiting:animate-out exiting:fade-out exiting:zoom-out-95 fill-mode-forwards w-56 origin-top-left overflow-auto rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+                    <Menu className="outline-none">
+                      <MenuItem
+                        onAction={() => navigate("/orders")}
+                        className="group box-border flex w-full cursor-default items-center px-3 py-2 text-gray-900 outline-none focus:bg-gray-200"
+                      >
+                        My Orders
+                      </MenuItem>
+                      <MenuItem
+                        onAction={() =>
+                          fetcher.submit("", {
+                            method: "post",
+                            action: "/logout",
+                          })
+                        }
+                        className="group box-border flex w-full cursor-default items-center px-3 py-2 text-gray-900 outline-none focus:bg-gray-200"
+                      >
+                        Logout
+                      </MenuItem>
+                    </Menu>
+                  </Popover>
+                </MenuTrigger>
               </>
             ) : (
               <>

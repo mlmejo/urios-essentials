@@ -2,7 +2,9 @@ import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import { Search } from "lucide-react";
 import { requireAuthCookie } from "~/auth/auth";
+import SecondaryButton from "~/components/secondary-button";
 import AdminLayout from "~/layouts/admin";
+import fetchFromStrapi from "~/strapi/fetch-wrapper.server";
 import { Product } from "~/types";
 
 export const meta: MetaFunction = () => {
@@ -13,20 +15,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
   let { jwt } = await requireAuthCookie(request);
 
   try {
-    let response = await fetch(
-      "http://localhost:1337/api/products?populate=*",
+    // Use the fetch wrapper
+    const response = await fetchFromStrapi<Product[]>(
+      "/api/products?populate=*",
       {
-        headers: {
-          Authorization: `Bearer ${jwt}`,
-        },
+        token: jwt,
       },
     );
-    return { products: (await response.json()).data as Product[] };
-  } catch (error) {
-    if (error instanceof Error) {
-      console.error(error.message);
+
+    if (response.success) {
+      return { products: response.data || [] };
+    } else {
+      console.error("Error fetching products:", response.error);
+      return { products: [] };
     }
-    return { products: [] } as { products: Product[] };
+  } catch (error) {
+    console.error(
+      "Unexpected error in loader:",
+      error instanceof Error ? error.message : error,
+    );
+    return { products: [] };
   }
 }
 
@@ -61,7 +69,17 @@ export default function AdminProducts() {
                     </div>
 
                     <div>
-                      <Link to="/admin/products/new" className="btn-primary">
+                      <Link
+                        to="/admin/export-products"
+                        target="_blank"
+                        className="btn-secondary"
+                      >
+                        Export to CSV
+                      </Link>
+                      <Link
+                        to="/admin/products/new"
+                        className="btn-primary ms-2"
+                      >
                         Add Product
                       </Link>
                     </div>

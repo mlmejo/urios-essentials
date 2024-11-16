@@ -1,6 +1,5 @@
 import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
-import { requireAuthCookie } from "~/auth/auth";
 import Navigation from "~/layouts/navigation";
 import { getProductsByCategory } from "~/products/queries";
 import { Product } from "~/types";
@@ -9,9 +8,7 @@ export const meta: MetaFunction = () => {
   return [{ title: "Products by Category" }];
 };
 
-export async function loader({ request, params }: LoaderFunctionArgs) {
-  let { user } = await requireAuthCookie(request);
-
+export async function loader({ params }: LoaderFunctionArgs) {
   try {
     let category = params.category;
     if (!category) {
@@ -19,7 +16,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     }
     return {
       products: await getProductsByCategory(category),
-      user: user.email,
     };
   } catch (error) {
     if (error instanceof Error) {
@@ -27,20 +23,19 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     }
   }
 
-  return { products: [], user: user.email } as {
+  return { products: [] } as {
     products: Product[];
-    user: string;
   };
 }
 
 export default function ProductByCategory() {
-  let { products, user } = useLoaderData<typeof loader>();
+  let { products } = useLoaderData<typeof loader>();
   let categoryName =
     products.length > 0 ? products[0].category?.displayName : "";
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Navigation user={user} />
+      <Navigation />
 
       <div className="py-6">
         <div className="mx-auto px-4 md:px-6 lg:px-8">
@@ -51,6 +46,7 @@ export default function ProductByCategory() {
           <div className="mt-6 grid grid-cols-4 gap-6">
             {products.map((product) => (
               <Link
+                key={product.id}
                 to={`/products/${product.slug}`}
                 className="flex flex-col rounded-md bg-gray-200 p-4"
               >

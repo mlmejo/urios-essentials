@@ -1,5 +1,6 @@
 import { createCookie } from "@remix-run/node";
 import { Cart, CartItem } from "~/types";
+import { CartDispatchAction } from "./types";
 
 let secret = process.env.COOKIE_SECRET || "default";
 if (secret === "default") {
@@ -26,7 +27,7 @@ export async function getUserCart(request: Request): Promise<Cart> {
 export async function dispatchCart(
   request: Request,
   selectedItem: CartItem,
-  action: "add" | "decrement" | "remove",
+  action: CartDispatchAction,
 ) {
   let cart = await getUserCart(request);
   let existingCartItem = cart.find(
@@ -34,25 +35,28 @@ export async function dispatchCart(
   );
 
   switch (action) {
-    case "add":
+    case "INCREMENT":
       if (existingCartItem) {
         existingCartItem.quantity += selectedItem.quantity;
       } else {
         cart.push(selectedItem);
       }
       break;
-    case "decrement":
+    case "DECREMENT":
       if (existingCartItem) {
-        existingCartItem.quantity -= selectedItem.quantity;
+        let result = existingCartItem.quantity - selectedItem.quantity;
+        if (result >= 0) {
+          existingCartItem.quantity = result;
+        }
       }
       break;
-
-    case "remove":
+    case "REMOVE":
       if (existingCartItem) {
-        cart.filter(
+        cart = cart.filter(
           (cartItem) => cartItem.productId !== selectedItem.productId,
         );
       }
+      break;
   }
 
   return cart;

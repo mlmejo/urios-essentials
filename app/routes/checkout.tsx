@@ -2,9 +2,9 @@ import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
   MetaFunction,
-  redirect,
 } from "@remix-run/node";
-import { Form, useLoaderData } from "@remix-run/react";
+import { Form, useFetcher, useLoaderData } from "@remix-run/react";
+import { Minus, Plus } from "lucide-react";
 import { requireAuthCookie } from "~/auth/auth";
 import { getUserCart } from "~/cart/cart";
 import PrimaryButton from "~/components/primary-button";
@@ -16,32 +16,28 @@ export const meta: MetaFunction = () => {
   return [{ title: "Checkout" }];
 };
 
-type EnrichedCartItem = Product & { quantity: number };
-
 export async function action({ request }: ActionFunctionArgs) {
-  let { jwt, user } = await requireAuthCookie(request);
+  let { jwt } = await requireAuthCookie(request);
   let userCart = await getUserCart(request);
 
   try {
     let orderResponse = await fetch("http://localhost:1337/api/orders", {
       method: "post",
       headers: {
-        Authorization: `Bearer ${jwt}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         data: {
-          user: user.documentId,
+          user: "zpn6fzyarmqprndta26ewn82",
         },
       }),
     });
 
     let order = (await orderResponse.json()).data;
 
-    console.log(order);
-
     await Promise.all(
       userCart.map((cartItem) => {
+        if (cartItem.quantity < 1) return;
         let response = fetch("http://localhost:1337/api/order-items", {
           method: "post",
           headers: {
@@ -66,7 +62,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
   }
 
-  return redirect("/shop");
+  return null;
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -108,6 +104,7 @@ export default function CheckOut() {
     let itemSubtotal = cartItem.quantity * cartItem.price;
     return total + itemSubtotal;
   }, 0);
+  let fetcher = useFetcher();
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -141,9 +138,74 @@ export default function CheckOut() {
                     {cartItem.name}
                   </h2>
                 </div>
-                <div className="flex items-center font-medium text-gray-800">
-                  Quantity: {cartItem.quantity}
-                  <SecondaryButton className="ms-2 rounded-full px-3 py-1.5">
+                <div className="flex items-center">
+                  <div className="rounded-md border border-gray-300 bg-white">
+                    <div className="flex w-full items-center justify-between gap-x-1">
+                      <div className="grow px-3 py-2">
+                        <input
+                          aria-label={`${cartItem.name} quantity`}
+                          name={`${cartItem.documentId}_quantity`}
+                          className="w-12 border-0 bg-transparent p-0 text-gray-800 focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                          style={{ MozAppearance: "textfield" }}
+                          type="number"
+                          aria-roledescription="Number field"
+                          defaultValue={cartItem.quantity || "0"}
+                        />
+                      </div>
+                      <div className="-gap-y-px flex items-center divide-x divide-gray-200 border-s border-gray-200">
+                        <button
+                          type="button"
+                          className="inline-flex size-10 items-center justify-center gap-x-2 bg-white text-sm font-medium text-gray-800 last:rounded-e-lg hover:bg-gray-50 focus:bg-gray-50 focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+                          aria-label="Decrease"
+                          onClick={() => {
+                            fetcher.submit(
+                              {
+                                productId: cartItem.documentId,
+                                quantity: 1,
+                                intent: "DECREMENT",
+                              },
+                              {
+                                method: "post",
+                                action: "/cart",
+                              },
+                            );
+                          }}
+                        >
+                          <Minus className="size-3.5 shrink-0" />
+                        </button>
+                        <button
+                          type="button"
+                          className="inline-flex size-10 items-center justify-center gap-x-2 bg-white text-sm font-medium text-gray-800 last:rounded-e-lg hover:bg-gray-50 focus:bg-gray-50 focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+                          aria-label="Increase"
+                          onClick={() => {
+                            fetcher.submit(
+                              {
+                                productId: cartItem.documentId,
+                                quantity: 1,
+                                intent: "INCREMENT",
+                              },
+                              { method: "post", action: "/cart" },
+                            );
+                          }}
+                        >
+                          <Plus className="size-3.5 shrink-0" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <SecondaryButton
+                    onClick={() =>
+                      fetcher.submit(
+                        {
+                          productId: cartItem.documentId,
+                          quantity: 0,
+                          intent: "REMOVE",
+                        },
+                        { action: "/cart", method: "post" },
+                      )
+                    }
+                    className="ms-2 rounded-full px-3 py-1.5"
+                  >
                     X
                   </SecondaryButton>
                 </div>

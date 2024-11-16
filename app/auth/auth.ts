@@ -1,5 +1,5 @@
-import { createCookie, redirect } from "@remix-run/node";
-import { StrapiUser } from "~/types";
+import { createCookie, LoaderFunctionArgs, redirect } from "@remix-run/node";
+import { AuthData } from "~/auth/types";
 
 let secret = process.env.COOKIE_SECRET || "default";
 if (secret === "default") {
@@ -20,7 +20,7 @@ let cookie = createCookie("auth", {
 
 export async function getAuthFromRequest(
   request: Request,
-): Promise<StrapiUser | null> {
+): Promise<AuthData | null> {
   let userData = await cookie.parse(request.headers.get("Cookie"));
   return userData ?? null;
 }
@@ -28,7 +28,7 @@ export async function getAuthFromRequest(
 export async function requireAuthCookie(request: Request) {
   let userData = await getAuthFromRequest(request);
   if (!userData) {
-    throw redirect("/login", {
+    throw redirect("/auth/login", {
       headers: {
         "Set-Cookie": await cookie.serialize("", {
           maxAge: 0,
@@ -41,11 +41,21 @@ export async function requireAuthCookie(request: Request) {
 
 export async function setAuthOnResponse(
   response: Response,
-  userData: StrapiUser,
+  authData: AuthData,
 ): Promise<Response> {
-  let header = await cookie.serialize(userData);
+  let header = await cookie.serialize(authData);
   response.headers.append("Set-Cookie", header);
   return response;
+}
+
+export async function redirectIfLoggedInLoader({
+  request,
+}: LoaderFunctionArgs) {
+  let userData = await getAuthFromRequest(request);
+  if (userData) {
+    throw redirect("/shop");
+  }
+  return null;
 }
 
 export async function redirectWithClearedCookies() {
